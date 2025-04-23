@@ -39,6 +39,7 @@ const UserSchema = new mongoose.Schema(
       // required: function () {
       //   return this.role !== "superadmin";
       // },
+      required: false,
     },
     isActive: {
       type: Boolean,
