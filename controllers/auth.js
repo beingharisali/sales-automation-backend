@@ -30,11 +30,11 @@ const register = async (req, res) => {
       const superAdminExists = await User.findOne({ role: "superadmin" });
       if (superAdminExists) {
         throw new Error("Superadmin already exists");
-      } else if (role === "admin") {
-        throw new Error("Admins can only created by superadmins");
-      } else {
-        req.body.role = "agent";
       }
+    } else if (role === "admin") {
+      throw new Error("Admins can only created by superadmins");
+    } else {
+      req.body.role = "agent";
     }
   }
 
