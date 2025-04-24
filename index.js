@@ -28,7 +28,28 @@ app.use(
   })
 );
 app.use(helmet());
-app.use(cors({ origin: process.env.FRONTEND_APP_URL }));
+const allowedOrigins = [
+  process.env.FRONTEND_APP_URL ||
+    "https://sales-automation-platform.vercel.app",
+  "http://localhost:5173", // For local development
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g., Postman, curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: false, // Set to true if using cookies
+  })
+);
 // app.use(xss());
 
 // routes
