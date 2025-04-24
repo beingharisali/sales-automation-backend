@@ -28,7 +28,7 @@ app.use(
   })
 );
 app.use(helmet());
-app.use(cors());
+app.use(cors({ origin: process.env.FRONTEND_APP_URL }));
 // app.use(xss());
 
 // routes
