@@ -84,8 +84,20 @@ const login = async (req, res) => {
     token,
   });
 };
+const getAdmins = async (req, res) => {
+  if (req.user.role !== "superadmin") {
+    throw new CustomError.UnauthorizedError("Only superadmins can view admins");
+  }
+
+  const admins = await User.find({ role: "admin" }).select(
+    "name email role createdAt"
+  );
+
+  res.status(StatusCodes.OK).json({ admins, count: admins.length });
+};
 
 module.exports = {
   register,
   login,
+  getAdmins,
 };
