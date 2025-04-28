@@ -95,9 +95,23 @@ const getAdmins = async (req, res) => {
 
   res.status(StatusCodes.OK).json({ admins, count: admins.length });
 };
+const getAgents = async (req, res) => {
+  if (!["superadmin", "admin"].includes(req.user.role)) {
+    throw new CustomError.UnauthorizedError(
+      "Only superadmins and admins can view agents"
+    );
+  }
+
+  const agents = await User.find({ role: "agent" }).select(
+    "name email role createdAt"
+  );
+
+  res.status(StatusCodes.OK).json({ agents, count: agents.length });
+};
 
 module.exports = {
   register,
   login,
   getAdmins,
+  getAgents,
 };
