@@ -94,26 +94,22 @@ const forgotPassword = async (req, res) => {
 
   const user = await User.findOne({ email });
   if (!user) {
-    // Don't reveal user doesn't exist for security
     return res
       .status(StatusCodes.OK)
       .json({ msg: "If the email exists, a reset link has been sent" });
   }
 
-  // Generate reset token
   const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_LIFETIME,
   });
 
-  // Save token and expiration to user
   user.passwordResetToken = resetToken;
-  user.passwordResetExpires = Date.now() + 3600000; // 1 hour
+  user.passwordResetExpires = Date.now() + 3600000;
   await user.save();
 
-  // Send email
   const resetUrl = `${process.env.FRONTEND_APP_URL}/reset-password/${resetToken}`;
   const transporter = nodemailer.createTransport({
-    service: "gmail", // Or use SendGrid, etc.
+    service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -150,7 +146,6 @@ const resetPassword = async (req, res) => {
     throw new CustomError.BadRequestError("Please provide token and password");
   }
 
-  // Verify token
   let payload;
   try {
     payload = jwt.verify(token, process.env.JWT_SECRET);
@@ -158,7 +153,6 @@ const resetPassword = async (req, res) => {
     throw new CustomError.BadRequestError("Invalid or expired token");
   }
 
-  // Find user by token and check expiration
   const user = await User.findOne({
     passwordResetToken: token,
     passwordResetExpires: { $gt: Date.now() },
@@ -168,7 +162,6 @@ const resetPassword = async (req, res) => {
     throw new CustomError.BadRequestError("Invalid or expired token");
   }
 
-  // Update password
   user.password = password;
   user.passwordResetToken = null;
   user.passwordResetExpires = null;
