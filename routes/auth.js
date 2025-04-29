@@ -5,6 +5,8 @@ const {
   login,
   getAdmins,
   getAgents,
+  forgotPassword,
+  resetPassword,
 } = require("../controllers/auth");
 const authenticateUser = require("../middleware/authentication");
 
@@ -13,6 +15,8 @@ router.post("/public-register", register);
 router.post("/login", login);
 // private routes
 router.post("/register", authenticateUser, register);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 router.get("/admins", authenticateUser, getAdmins);
 router.get("/agents", authenticateUser, getAgents);
 

@@ -1,6 +1,8 @@
 const { StatusCodes } = require("http-status-codes");
 const { BadRequestError, UnauthenticatedError } = require("../errors");
 const User = require("../models/User");
+const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
 const register = async (req, res) => {
   const { name, email, password, role } = req.body;
@@ -84,6 +86,96 @@ const login = async (req, res) => {
     token,
   });
 };
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    throw new CustomError.BadRequestError("Please provide email");
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    // Don't reveal user doesn't exist for security
+    return res
+      .status(StatusCodes.OK)
+      .json({ msg: "If the email exists, a reset link has been sent" });
+  }
+
+  // Generate reset token
+  const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_LIFETIME,
+  });
+
+  // Save token and expiration to user
+  user.passwordResetToken = resetToken;
+  user.passwordResetExpires = Date.now() + 3600000; // 1 hour
+  await user.save();
+
+  // Send email
+  const resetUrl = `${process.env.FRONTEND_APP_URL}/reset-password/${resetToken}`;
+  const transporter = nodemailer.createTransport({
+    service: "gmail", // Or use SendGrid, etc.
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: user.email,
+    subject: "Password Reset Request",
+    html: `
+      <h3>Password Reset</h3>
+      <p>You requested a password reset. Click the link below to reset your password:</p>
+      <a href="${resetUrl}">Reset Password</a>
+      <p>This link expires in 1 hour.</p>
+      <p>If you didn't request this, please ignore this email.</p>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    res
+      .status(StatusCodes.OK)
+      .json({ msg: "If the email exists, a reset link has been sent" });
+  } catch (error) {
+    console.error("Email error:", error);
+    throw new CustomError.InternalServerError("Failed to send reset email");
+  }
+};
+
+const resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) {
+    throw new CustomError.BadRequestError("Please provide token and password");
+  }
+
+  // Verify token
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    throw new CustomError.BadRequestError("Invalid or expired token");
+  }
+
+  // Find user by token and check expiration
+  const user = await User.findOne({
+    passwordResetToken: token,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new CustomError.BadRequestError("Invalid or expired token");
+  }
+
+  // Update password
+  user.password = password;
+  user.passwordResetToken = null;
+  user.passwordResetExpires = null;
+  await user.save();
+
+  res.status(StatusCodes.OK).json({ msg: "Password reset successful" });
+};
 const getAdmins = async (req, res) => {
   if (req.user.role !== "superadmin") {
     throw new CustomError.UnauthorizedError("Only superadmins can view admins");
@@ -112,6 +204,8 @@ const getAgents = async (req, res) => {
 module.exports = {
   register,
   login,
+  forgotPassword,
+  resetPassword,
   getAdmins,
   getAgents,
 };
