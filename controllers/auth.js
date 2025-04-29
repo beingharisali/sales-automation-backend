@@ -89,7 +89,7 @@ const login = async (req, res) => {
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
   if (!email) {
-    throw new CustomError.BadRequestError("Please provide email");
+    throw new BadRequestError("Please provide email");
   }
 
   const user = await User.findOne({ email });
@@ -136,21 +136,21 @@ const forgotPassword = async (req, res) => {
       .json({ msg: "If the email exists, a reset link has been sent" });
   } catch (error) {
     console.error("Email error:", error);
-    throw new CustomError.InternalServerError("Failed to send reset email");
+    throw new Error("Failed to send reset email");
   }
 };
 
 const resetPassword = async (req, res) => {
   const { token, password } = req.body;
   if (!token || !password) {
-    throw new CustomError.BadRequestError("Please provide token and password");
+    throw new BadRequestError("Please provide token and password");
   }
 
   let payload;
   try {
     payload = jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
-    throw new CustomError.BadRequestError("Invalid or expired token");
+    throw new BadRequestError("Invalid or expired token");
   }
 
   const user = await User.findOne({
@@ -159,7 +159,7 @@ const resetPassword = async (req, res) => {
   });
 
   if (!user) {
-    throw new CustomError.BadRequestError("Invalid or expired token");
+    throw new BadRequestError("Invalid or expired token");
   }
 
   user.password = password;
@@ -171,7 +171,7 @@ const resetPassword = async (req, res) => {
 };
 const getAdmins = async (req, res) => {
   if (req.user.role !== "superadmin") {
-    throw new CustomError.UnauthorizedError("Only superadmins can view admins");
+    throw new Error("Only superadmins can view admins");
   }
 
   const admins = await User.find({ role: "admin" }).select(
@@ -182,9 +182,7 @@ const getAdmins = async (req, res) => {
 };
 const getAgents = async (req, res) => {
   if (!["superadmin", "admin"].includes(req.user.role)) {
-    throw new CustomError.UnauthorizedError(
-      "Only superadmins and admins can view agents"
-    );
+    throw new Error("Only superadmins and admins can view agents");
   }
 
   const agents = await User.find({ role: "agent" }).select(
