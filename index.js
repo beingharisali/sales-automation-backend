@@ -14,6 +14,7 @@ const connectDB = require("./database/connect");
 
 // routers
 const authRouter = require("./routes/auth");
+const saleRouter = require("./routes/sale");
 
 // error handler
 const notFoundMiddleware = require("./middleware/not-found");
@@ -54,6 +55,7 @@ app.use(
 
 // routes
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/sales", saleRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
