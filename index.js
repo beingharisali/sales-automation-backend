@@ -31,7 +31,7 @@ app.use(
 app.use(helmet());
 const allowedOrigins = [
   process.env.FRONTEND_APP_URL ||
-    "https://sales-automation-platform.vercel.app",
+    "https://sales-automation-frontend.vercel.app",
   "http://localhost:5173", // For local development
 ];
 
