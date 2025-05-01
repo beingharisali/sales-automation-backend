@@ -23,17 +23,31 @@ const SaleSchema = new mongoose.Schema({
   campaignType: {
     type: String,
     required: [true, "Campaign type is required"],
-    enum: ["Basic", "Premium", "Elite"],
+    enum: [
+      "ARW (American Residential Warranty)",
+      "Omega Home Care",
+      "Choice Home Warranty",
+      "AFC Warranty",
+      "Frontier TX",
+      "Guard Home Warranty",
+    ],
   },
   confirmationNumber: {
     type: String,
     required: [true, "Confirmation number is required"],
     trim: true,
   },
-  planNumber: {
+  planName: {
     type: String,
-    required: [true, "Plan number is required"],
-    enum: ["Plan A", "Plan B", "Plan C"],
+    required: [true, "Plan name is required"],
+    enum: [
+      "Platinum Plan",
+      "Kitchen Plus Plan",
+      "Platinum Premier Plan",
+      "Deluxe Home Protection (Omega)",
+      "Choice Basic Plan",
+      "AFC Silver Plan",
+    ],
   },
   address: {
     type: String,
@@ -63,7 +77,7 @@ const SaleSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  chequeNumber: {
+  chequeOrCardNumber: {
     type: String,
     trim: true,
   },
@@ -90,7 +104,10 @@ const SaleSchema = new mongoose.Schema({
   autoWarrantyTransfer: {
     type: String,
     required: [true, "Auto warranty transfer status is required"],
-    enum: ["Yes", "No"],
+    enum: [
+      "Yes ( Earn Fronter Transfer Incentive PKR 1500 😀)",
+      "No Fine PKR 500",
+    ],
   },
   alternativePhone: {
     type: String,
