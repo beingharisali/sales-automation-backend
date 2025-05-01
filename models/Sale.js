@@ -105,7 +105,7 @@ const SaleSchema = new mongoose.Schema({
     type: String,
     required: [true, "Auto warranty transfer status is required"],
     enum: [
-      "Yes ( Earn Fronter Transfer Incentive PKR 1500 😀)",
+      "Yes ( Earn Fronter Transfer Incentive PKR 1500 )",
       "No Fine PKR 500",
     ],
   },
