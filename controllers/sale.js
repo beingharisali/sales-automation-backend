@@ -1,6 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
-const { UnauthenticatedError } = require("../errors");
 const Sale = require("../models/Sale");
+const { UnauthenticatedError } = require("../errors");
 
 const createSale = async (req, res) => {
   const { user } = req;
@@ -11,26 +11,9 @@ const createSale = async (req, res) => {
     throw new CustomError.UnauthorizedError("Only agents can create sales");
   }
 
-  const { agent, campaign, campaignDetails, ...saleData } = req.body;
-  if (campaign === "Auto Warranty") {
-    if (
-      !campaignDetails ||
-      !campaignDetails.vinNumber ||
-      !campaignDetails.vehicleMileage ||
-      !campaignDetails.vehicleModel ||
-      !campaignDetails.planDuration ||
-      !campaignDetails.fronterName ||
-      !campaignDetails.closerName
-    ) {
-      throw new BadRequestError(
-        "VIN, Make, Model, duration, fronter and closer name are required for Auto Warranty"
-      );
-    }
-  }
+  const { agent, ...saleData } = req.body;
   const salePayload = {
     ...saleData,
-    campaign,
-    campaignDetails: campaign === "Auto Warranty" ? campaignDetails : {},
     agent: user.userId,
   };
 
@@ -43,9 +26,7 @@ const createSale = async (req, res) => {
 const getSales = async (req, res) => {
   const { user } = req;
   if (!["admin", "superadmin"].includes(user.role)) {
-    throw new UnauthenticatedError(
-      "Only admins and superadmins can view sales"
-    );
+    throw new Error("Only admins and superadmins can view sales");
   }
 
   const sales = await Sale.find({})
