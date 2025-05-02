@@ -34,8 +34,59 @@ const getSales = async (req, res) => {
     .sort("-createdAt");
   res.status(StatusCodes.OK).json({ sales, count: sales.length });
 };
+const updateSale = async (req, res) => {
+  const { user } = req;
+  const { id } = req.params;
+
+  if (!user || !user.userId) {
+    throw new UnauthenticatedError("User not authenticated");
+  }
+  if (!["admin", "superadmin"].includes(user.role)) {
+    throw new UnauthorizedError("Only admins and superadmins can update sales");
+  }
+
+  const sale = await Sale.findById(id);
+  if (!sale) {
+    throw new NotFoundError(`No sale found with id ${id}`);
+  }
+
+  const updates = req.body;
+  // Prevent updating agent or createdAt
+  delete updates.agent;
+  delete updates.createdAt;
+
+  const updatedSale = await Sale.findByIdAndUpdate(id, updates, {
+    new: true,
+    runValidators: true,
+  }).populate("agent", "name email");
+
+  res
+    .status(StatusCodes.OK)
+    .json({ msg: "Sale updated successfully", sale: updatedSale });
+};
+
+const deleteSale = async (req, res) => {
+  const { user } = req;
+  const { id } = req.params;
+
+  if (!user || !user.userId) {
+    throw new UnauthenticatedError("User not authenticated");
+  }
+  if (!["admin", "superadmin"].includes(user.role)) {
+    throw new UnauthorizedError("Only admins and superadmins can delete sales");
+  }
+
+  const sale = await Sale.findByIdAndDelete(id);
+  if (!sale) {
+    throw new NotFoundError(`No sale found with id ${id}`);
+  }
+
+  res.status(StatusCodes.OK).json({ msg: "Sale deleted successfully" });
+};
 
 module.exports = {
   createSale,
   getSales,
+  updateSale,
+  deleteSale,
 };
