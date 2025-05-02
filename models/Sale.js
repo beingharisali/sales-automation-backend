@@ -101,14 +101,6 @@ const SaleSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  autoWarrantyTransfer: {
-    type: String,
-    required: [true, "Auto warranty transfer status is required"],
-    enum: [
-      "Yes ( Earn Fronter Transfer Incentive PKR 1500 )",
-      "No Fine PKR 500",
-    ],
-  },
   alternativePhone: {
     type: String,
     match: [/^\+?[\d\s-]{10,15}$/, "Invalid phone number"],
