@@ -15,6 +15,7 @@ const connectDB = require("./database/connect");
 // routers
 const authRouter = require("./routes/auth");
 const saleRouter = require("./routes/sale");
+const autoSaleRouter = require("./routes/auto-sale");
 const leadRouter = require("./routes/lead");
 
 // error handler
@@ -58,6 +59,7 @@ app.use(
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/sales", saleRouter);
 app.use("/api/v1/leads", leadRouter);
+app.use("/api/v1/auto-sales", autoSaleRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
