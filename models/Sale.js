@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 const SaleSchema = new mongoose.Schema({
   campaign: {
     type: String,
-    default: "Home Warranty",
-    enum: ["Home Warranty"],
+    required: [true, "Campaign is required"],
+    enum: ["Home Warranty", "Auto Warrenty"],
   },
   dateOfSale: {
     type: Date,
@@ -113,6 +113,32 @@ const SaleSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  campaignDetails: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {},
+    validate: {
+      validator: function (v) {
+        if (this.campaign === "Auto Warranty") {
+          return (
+            v.vinNumber &&
+            typeof v.vinNumber === "string" &&
+            v.vehicleMileage &&
+            typeof v.vehicleMileage === "string" &&
+            v.vehicleModel &&
+            typeof v.vehicleModel === "string" &&
+            v.planDuration &&
+            typeof v.planDuration === "string" &&
+            v.fronterName &&
+            typeof v.fronterName === "string" &&
+            v.closerName &&
+            typeof v.closerName === "string"
+          );
+        }
+        return true;
+      },
+      message: "Invalid campaign details for Auto Warranty",
+    },
   },
 });
 
