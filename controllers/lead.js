@@ -35,8 +35,59 @@ const getLeads = async (req, res) => {
     .sort("-createdAt");
   res.status(StatusCodes.OK).json({ leads, count: leads.length });
 };
+const updateLead = async (req, res) => {
+  const { user } = req;
+  const { id } = req.params;
+
+  if (!user || !user.userId) {
+    throw new UnauthenticatedError("User not authenticated");
+  }
+  if (!["admin", "superadmin"].includes(user.role)) {
+    throw new UnauthorizedError("Only admins and superadmins can update leads");
+  }
+
+  const lead = await Lead.findById(id);
+  if (!lead) {
+    throw new NotFoundError(`No lead found with id ${id}`);
+  }
+
+  const updates = req.body;
+  // Prevent updating agent or createdAt
+  delete updates.agent;
+  delete updates.createdAt;
+
+  const updatedLead = await Lead.findByIdAndUpdate(id, updates, {
+    new: true,
+    runValidators: true,
+  }).populate("agent", "name email");
+
+  res
+    .status(StatusCodes.OK)
+    .json({ msg: "Lead updated successfully", sale: updatedLead });
+};
+
+const deleteLead = async (req, res) => {
+  const { user } = req;
+  const { id } = req.params;
+
+  if (!user || !user.userId) {
+    throw new UnauthenticatedError("User not authenticated");
+  }
+  if (!["admin", "superadmin"].includes(user.role)) {
+    throw new UnauthorizedError("Only admins and superadmins can delete leads");
+  }
+
+  const lead = await Lead.findByIdAndDelete(id);
+  if (!lead) {
+    throw new NotFoundError(`No lead found with id ${id}`);
+  }
+
+  res.status(StatusCodes.OK).json({ msg: "Lead deleted successfully" });
+};
 
 module.exports = {
   createLead,
   getLeads,
+  updateLead,
+  deleteLead,
 };
