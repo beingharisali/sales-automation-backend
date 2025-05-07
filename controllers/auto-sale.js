@@ -1,5 +1,5 @@
 const { StatusCodes } = require("http-status-codes");
-const { UnauthenticatedError } = require("../errors");
+const { UnauthenticatedError, NotFoundError } = require("../errors");
 const AutoSale = require("../models/AutoSale");
 
 const createAutoSale = async (req, res) => {

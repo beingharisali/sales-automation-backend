@@ -1,6 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const Sale = require("../models/Sale");
-const { UnauthenticatedError } = require("../errors");
+const { UnauthenticatedError, NotFoundError } = require("../errors");
 
 const createSale = async (req, res) => {
   const { user } = req;
