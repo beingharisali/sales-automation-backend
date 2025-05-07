@@ -36,9 +36,6 @@ const UserSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      // required: function () {
-      //   return this.role !== "superadmin";
-      // },
       required: false,
     },
     isActive: {
@@ -64,7 +61,6 @@ UserSchema.pre("save", async function () {
   }
 });
 
-// instance method to create JWT
 UserSchema.methods.createJWT = function () {
   return jwt.sign(
     { userId: this._id, name: this.name, role: this.role },

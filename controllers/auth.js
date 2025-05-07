@@ -186,10 +186,44 @@ const getAgents = async (req, res) => {
   }
 
   const agents = await User.find({ role: "agent" }).select(
-    "name email role createdAt"
+    "name email role createdAt isActive"
   );
 
   res.status(StatusCodes.OK).json({ agents, count: agents.length });
+};
+const toggleAgentActive = async (req, res) => {
+  const { user } = req;
+  const { id } = req.params;
+
+  if (!user || !user.userId) {
+    throw new UnauthenticatedError("User not authenticated");
+  }
+  if (!["admin", "superadmin"].includes(user.role)) {
+    throw new UnauthorizedError(
+      "Only admins and superadmins can toggle agent status"
+    );
+  }
+
+  const agent = await User.findById(id);
+  if (!agent) {
+    throw new NotFoundError(`No agent found with id ${id}`);
+  }
+  if (agent.role !== "agent") {
+    throw new BadRequestError("Can only toggle status for agents");
+  }
+
+  agent.isActive = !agent.isActive;
+  await agent.save();
+
+  res.status(StatusCodes.OK).json({
+    msg: `Agent ${agent.isActive ? "activated" : "deactivated"} successfully`,
+    agent: {
+      name: agent.name,
+      email: agent.email,
+      role: agent.role,
+      isActive: agent.isActive,
+    },
+  });
 };
 
 module.exports = {
@@ -199,4 +233,5 @@ module.exports = {
   resetPassword,
   getAdmins,
   getAgents,
+  toggleAgentActive,
 };
