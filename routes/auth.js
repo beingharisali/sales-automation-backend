@@ -8,6 +8,7 @@ const {
   forgotPassword,
   resetPassword,
   toggleAgentActive,
+  getAgentById,
 } = require("../controllers/auth");
 const authenticateUser = require("../middleware/authentication");
 
@@ -21,5 +22,6 @@ router.post("/reset-password", resetPassword);
 router.get("/admins", authenticateUser, getAdmins);
 router.get("/agents", authenticateUser, getAgents);
 router.patch("/agents/:id/toggle-active", authenticateUser, toggleAgentActive);
+router.get("/agents/:id", authenticateUser, getAgentById);
 
 module.exports = router;

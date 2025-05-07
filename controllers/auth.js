@@ -194,6 +194,31 @@ const getAgents = async (req, res) => {
 
   res.status(StatusCodes.OK).json({ agents, count: agents.length });
 };
+const getAgentById = async (req, res) => {
+  const { user } = req;
+  const { id } = req.params;
+
+  if (!user || !user.userId) {
+    throw new UnauthenticatedError("User not authenticated");
+  }
+  if (!["admin", "superadmin"].includes(user.role)) {
+    throw new UnauthorizedError(
+      "Only admins and superadmins can view agent details"
+    );
+  }
+
+  const agent = await User.findById(id).select(
+    "name email role isActive createdAt"
+  );
+  if (!agent) {
+    throw new NotFoundError(`No agent found with id ${id}`);
+  }
+  if (agent.role !== "agent") {
+    throw new BadRequestError("Can only view details for agents");
+  }
+
+  res.status(StatusCodes.OK).json({ agent });
+};
 const toggleAgentActive = async (req, res) => {
   const { user } = req;
   const { id } = req.params;
@@ -237,4 +262,5 @@ module.exports = {
   getAdmins,
   getAgents,
   toggleAgentActive,
+  getAgentById,
 };

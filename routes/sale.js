@@ -6,6 +6,7 @@ const {
   getSales,
   updateSale,
   deleteSale,
+  getSalesByAgent,
 } = require("../controllers/sale");
 
 router
@@ -16,4 +17,5 @@ router
   .route("/:id")
   .patch(authenticateUser, updateSale)
   .delete(authenticateUser, deleteSale);
+// router.get("/", getSalesByAgent);
 module.exports = router;
