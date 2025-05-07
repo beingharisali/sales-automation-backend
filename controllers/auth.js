@@ -67,7 +67,9 @@ const login = async (req, res) => {
   }
 
   if (!user.isActive) {
-    throw new UnauthenticatedError("Account is deactivated");
+    throw new UnauthenticatedError(
+      "Account is deactivated. Please contact an admin."
+    );
   }
 
   const isPasswordCorrect = await user.comparePassword(password);
@@ -82,6 +84,7 @@ const login = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      isActive: user.isActive,
     },
     token,
   });

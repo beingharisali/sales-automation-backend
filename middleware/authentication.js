@@ -18,7 +18,9 @@ const auth = async (req, res, next) => {
     }
 
     if (!user.isActive) {
-      throw new UnauthenticatedError("Account is deactivated");
+      throw new UnauthenticatedError(
+        "Account is deactivated. Please contact an admin."
+      );
     }
     req.user = {
       userId: payload.userId,
