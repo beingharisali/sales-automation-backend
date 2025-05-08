@@ -48,6 +48,21 @@ const AutoSaleSchema = new mongoose.Schema({
     required: [true, "Payment mode is required"],
     enum: ["Credit Card", "Cheque Book"],
   },
+  campaignType: {
+    type: String,
+    required: [true, "Campaign type is required"],
+    enum: [
+      // "ARW (American Residential Warranty)",
+      // "Omega Home Care",
+      // "Choice Home Warranty",
+      // "AFC Warranty",
+      // "Frontier TX",
+      // "Guard Home Warranty",
+      "ASMB Auto Care",
+      "Auto 2",
+      "Inline auto service",
+    ],
+  },
   bankName: {
     type: String,
     trim: true,
