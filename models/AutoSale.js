@@ -63,6 +63,11 @@ const AutoSaleSchema = new mongoose.Schema({
       "Inline auto service",
     ],
   },
+  planName: {
+    type: String,
+    required: [true, "Plan name is required"],
+    enum: ["Power Train Plan", "Platinum Plan"],
+  },
   bankName: {
     type: String,
     trim: true,
@@ -103,10 +108,10 @@ const AutoSaleSchema = new mongoose.Schema({
     type: String,
     required: [true, "Vehicle model is required"],
   },
-  planDuration: {
-    type: String,
-    required: [true, "Plan duration is required"],
-  },
+  // planDuration: {
+  //   type: String,
+  //   required: [true, "Plan duration is required"],
+  // },
   fronterName: {
     type: String,
     required: [true, "Fronter name is required"],

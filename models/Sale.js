@@ -43,12 +43,12 @@ const SaleSchema = new mongoose.Schema({
     type: String,
     required: [true, "Plan name is required"],
     enum: [
-      "Platinum Plan",
-      "Kitchen Plus Plan",
-      "Platinum Premier Plan",
-      "Deluxe Home Protection (Omega)",
-      "Choice Basic Plan",
-      "AFC Silver Plan",
+      "4 Year Plan",
+      // "Kitchen Plus Plan",
+      // "Platinum Premier Plan",
+      // "Deluxe Home Protection (Omega)",
+      // "Choice Basic Plan",
+      // "AFC Silver Plan",
     ],
   },
   address: {
