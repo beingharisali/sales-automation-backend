@@ -1,5 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const Sale = require("../models/Sale");
+const AutoSale = require("../models/AutoSale");
 const { UnauthenticatedError, NotFoundError } = require("../errors");
 const mongoose = require("mongoose");
 
@@ -136,52 +137,99 @@ const deleteSale = async (req, res) => {
 
   res.status(StatusCodes.OK).json({ msg: "Sale deleted successfully" });
 };
-const getSalesByAgent = async (req, res) => {
+const getAgentSalesCounts = async (req, res) => {
   const { user } = req;
-  const { agent, filter } = req.query;
-
   if (!user || !user.userId) {
     throw new UnauthenticatedError("User not authenticated");
   }
-  if (!["admin", "superadmin"].includes(user.role)) {
-    throw new UnauthorizedError(
-      "Only admins and superadmins can view sales data"
-    );
+  if (user.role !== "agent") {
+    throw new UnauthorizedError("Only agents can view their sales counts");
   }
+  console.log("User Details:", { userId: user.userId, role: user.role });
 
-  if (!agent) {
-    throw new BadRequestError("Agent ID is required");
-  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const lastWeek = new Date(today);
+  lastWeek.setDate(today.getDate() - 7);
+  const lastMonth = new Date(today);
+  lastMonth.setDate(today.getDate() - 30);
 
-  const validFilters = ["today", "week", "month", "90days", "all"];
-  if (filter && !validFilters.includes(filter)) {
-    throw new BadRequestError("Invalid filter type");
-  }
+  console.log("Agent Sales Counts Query Dates:", {
+    today: today.toISOString(),
+    lastWeek: lastWeek.toISOString(),
+    lastMonth: lastMonth.toISOString(),
+    agent: user.userId,
+  });
 
-  let dateFilter = {};
-  const now = new Date();
+  const [homeSales, autoSales] = await Promise.all([
+    Sale.aggregate([
+      {
+        $match: {
+          agent: new mongoose.Types.ObjectId(user.userId),
+          dateOfSale: { $gte: lastMonth },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          todaySales: {
+            $sum: {
+              $cond: [{ $gte: ["$dateOfSale", today] }, 1, 0],
+            },
+          },
+          lastWeekSales: {
+            $sum: {
+              $cond: [{ $gte: ["$dateOfSale", lastWeek] }, 1, 0],
+            },
+          },
+          lastMonthSales: {
+            $sum: 1,
+          },
+        },
+      },
+    ]),
+    AutoSale.aggregate([
+      {
+        $match: {
+          agent: new mongoose.Types.ObjectId(user.userId),
+          dateOfSale: { $gte: lastMonth },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          todaySales: {
+            $sum: {
+              $cond: [{ $gte: ["$dateOfSale", today] }, 1, 0],
+            },
+          },
+          lastWeekSales: {
+            $sum: {
+              $cond: [{ $gte: ["$dateOfSale", lastWeek] }, 1, 0],
+            },
+          },
+          lastMonthSales: {
+            $sum: 1,
+          },
+        },
+      },
+    ]),
+  ]);
 
-  if (filter === "today") {
-    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-    dateFilter = { createdAt: { $gte: startOfDay } };
-  } else if (filter === "week") {
-    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-    startOfWeek.setHours(0, 0, 0, 0);
-    dateFilter = { createdAt: { $gte: startOfWeek } };
-  } else if (filter === "month") {
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    dateFilter = { createdAt: { $gte: startOfMonth } };
-  } else if (filter === "90days") {
-    const ninetyDaysAgo = new Date(now.setDate(now.getDate() - 90));
-    dateFilter = { createdAt: { $gte: ninetyDaysAgo } };
-  }
+  console.log("Home Sales Counts:", homeSales);
+  console.log("Auto Sales Counts:", autoSales);
 
-  const sales = await Sale.find({
-    agent,
-    ...dateFilter,
-  }).select("primaryPhone campaignType agentName");
+  const salesCounts = {
+    todaySales:
+      (homeSales[0]?.todaySales || 0) + (autoSales[0]?.todaySales || 0),
+    lastWeekSales:
+      (homeSales[0]?.lastWeekSales || 0) + (autoSales[0]?.lastWeekSales || 0),
+    lastMonthSales:
+      (homeSales[0]?.lastMonthSales || 0) + (autoSales[0]?.lastMonthSales || 0),
+  };
 
-  res.status(StatusCodes.OK).json({ sales, count: sales.length, msg: "data" });
+  console.log("Final Agent Sales Counts:", salesCounts);
+  res.status(StatusCodes.OK).json(salesCounts);
 };
 
 module.exports = {
@@ -189,5 +237,5 @@ module.exports = {
   getSales,
   updateSale,
   deleteSale,
-  getSalesByAgent,
+  getAgentSalesCounts,
 };
