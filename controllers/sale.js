@@ -24,18 +24,6 @@ const createSale = async (req, res) => {
     .status(StatusCodes.CREATED)
     .json({ msg: "Sale created successfully", sale });
 };
-
-// const getSales = async (req, res) => {
-//   const { user } = req;
-//   if (!["admin", "superadmin"].includes(user.role)) {
-//     throw new Error("Only admins and superadmins can view sales");
-//   }
-
-//   const sales = await Sale.find({})
-//     .populate("agent", "name email")
-//     .sort("-createdAt");
-//   res.status(StatusCodes.OK).json({ sales, count: sales.length });
-// };
 const getSales = async (req, res) => {
   const { user } = req;
   const { agent, filter } = req.query;
@@ -145,7 +133,6 @@ const getAgentSalesCounts = async (req, res) => {
   if (user.role !== "agent") {
     throw new UnauthorizedError("Only agents can view their sales counts");
   }
-  console.log("User Details:", { userId: user.userId, role: user.role });
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -153,13 +140,6 @@ const getAgentSalesCounts = async (req, res) => {
   lastWeek.setDate(today.getDate() - 7);
   const lastMonth = new Date(today);
   lastMonth.setDate(today.getDate() - 30);
-
-  console.log("Agent Sales Counts Query Dates:", {
-    today: today.toISOString(),
-    lastWeek: lastWeek.toISOString(),
-    lastMonth: lastMonth.toISOString(),
-    agent: user.userId,
-  });
 
   const [homeSales, autoSales] = await Promise.all([
     Sale.aggregate([
@@ -216,9 +196,6 @@ const getAgentSalesCounts = async (req, res) => {
     ]),
   ]);
 
-  console.log("Home Sales Counts:", homeSales);
-  console.log("Auto Sales Counts:", autoSales);
-
   const salesCounts = {
     todaySales:
       (homeSales[0]?.todaySales || 0) + (autoSales[0]?.todaySales || 0),
@@ -228,7 +205,6 @@ const getAgentSalesCounts = async (req, res) => {
       (homeSales[0]?.lastMonthSales || 0) + (autoSales[0]?.lastMonthSales || 0),
   };
 
-  console.log("Final Agent Sales Counts:", salesCounts);
   res.status(StatusCodes.OK).json(salesCounts);
 };
 
