@@ -31,4 +31,30 @@ const getDashboardStats = async (req, res) => {
   });
 };
 
-module.exports = { getDashboardStats };
+const graphDataStats = async (req, res) => {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 30); // last 30 days
+
+  const salesByDate = await Sale.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+        },
+        total: { $sum: 1 },
+      },
+    },
+    {
+      $sort: { _id: 1 },
+    },
+  ]);
+
+  res.status(StatusCodes.OK).json({ salesByDate });
+};
+
+module.exports = { getDashboardStats, graphDataStats };
