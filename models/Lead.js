@@ -15,9 +15,9 @@ const LeadSchema = new mongoose.Schema({
     required: [true, "Primary phone number is required"],
     match: [/^\+?[\d\s-]{10,15}$/, "Invalid phone number"],
   },
-  extendedWarrenty: {
+  extendedWarranty: {
     type: String,
-    required: [true, "Extended warrenty answer is required"],
+    required: [true, "Extended warranty answer is required"],
     enum: ["no", "yes"],
   },
   vehicleMileage: {
