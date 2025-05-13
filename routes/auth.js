@@ -14,6 +14,7 @@ const authenticateUser = require("../middleware/authentication");
 const {
   getDashboardStats,
   graphDataStats,
+  recentSales,
 } = require("../controllers/dashboard");
 
 // public routes
@@ -29,5 +30,6 @@ router.patch("/agents/:id/toggle-active", authenticateUser, toggleAgentActive);
 router.get("/agents/:id", authenticateUser, getAgentById);
 router.get("/dashboard-stats", authenticateUser, getDashboardStats);
 router.get("/graph-stats", authenticateUser, graphDataStats);
+router.get("/recent-sales", authenticateUser, recentSales);
 
 module.exports = router;

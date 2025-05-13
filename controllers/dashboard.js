@@ -56,5 +56,22 @@ const graphDataStats = async (req, res) => {
 
   res.status(StatusCodes.OK).json({ salesByDate });
 };
+const recentSales = async (req, res) => {
+  const recentSales = await Sale.find({})
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .populate("agent", "name email campaignType")
+    .lean();
 
-module.exports = { getDashboardStats, graphDataStats };
+  const formatted = recentSales.map((sale) => ({
+    id: sale._id,
+    name: sale.agent?.name || "Unknown",
+    email: sale.agent?.email || "N/A",
+    // image: sale.agent?.avatar || "/default-avatar.png",
+    campaignType: sale.campaignType || 0,
+  }));
+
+  res.status(StatusCodes.OK).json(formatted);
+};
+
+module.exports = { getDashboardStats, graphDataStats, recentSales };
