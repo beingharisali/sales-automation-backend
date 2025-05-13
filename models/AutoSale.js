@@ -51,17 +51,7 @@ const AutoSaleSchema = new mongoose.Schema({
   campaignType: {
     type: String,
     required: [true, "Campaign type is required"],
-    enum: [
-      // "ARW (American Residential Warranty)",
-      // "Omega Home Care",
-      // "Choice Home Warranty",
-      // "AFC Warranty",
-      // "Frontier TX",
-      // "Guard Home Warranty",
-      "ASMB Auto Care",
-      "Auto 2",
-      "Inline auto service",
-    ],
+    enum: ["ASMB Auto Care", "Auto 2", "Inline auto service"],
   },
   planName: {
     type: String,
@@ -108,10 +98,6 @@ const AutoSaleSchema = new mongoose.Schema({
     type: String,
     required: [true, "Vehicle model is required"],
   },
-  // planDuration: {
-  //   type: String,
-  //   required: [true, "Plan duration is required"],
-  // },
   fronterName: {
     type: String,
     required: [true, "Fronter name is required"],

@@ -6,6 +6,7 @@ const {
   getAutoSales,
   updateAutoSale,
   deleteAutoSale,
+  exportAutoSalesToCSV,
 } = require("../controllers/auto-sale");
 
 router
@@ -16,5 +17,6 @@ router
   .route("/:id")
   .patch(authenticateUser, updateAutoSale)
   .delete(authenticateUser, deleteAutoSale);
+router.route("/export").get(authenticateUser, exportAutoSalesToCSV);
 
 module.exports = router;

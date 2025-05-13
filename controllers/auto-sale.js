@@ -1,5 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const { UnauthenticatedError, NotFoundError } = require("../errors");
+const { Parser } = require("json2csv");
 const AutoSale = require("../models/AutoSale");
 
 const createAutoSale = async (req, res) => {
@@ -83,10 +84,51 @@ const deleteAutoSale = async (req, res) => {
 
   res.status(StatusCodes.OK).json({ msg: "Sale deleted successfully" });
 };
+const exportAutoSalesToCSV = async (req, res) => {
+  const autoSales = await AutoSale.find().lean();
+
+  if (!autoSales || autoSales.length === 0) {
+    return res.status(404).json({ msg: "No auto sales found to export" });
+  }
+
+  const fields = [
+    "dateOfSale",
+    "customerName",
+    "primaryPhone",
+    "confirmationNumber",
+    "address",
+    "email",
+    "agentName",
+    "activationFee",
+    "paymentMode",
+    "campaignType",
+    "planName",
+    "bankName",
+    "chequeOrCardNumber",
+    "cvv",
+    "expiryDate",
+    "checkingAccountNumber",
+    "routingNumber",
+    "alternativePhone",
+    "vinNumber",
+    "vehicleMileage",
+    "vehicleModel",
+    "fronterName",
+    "closerName",
+  ];
+
+  const json2csv = new Parser({ fields });
+  const csv = json2csv.parse(autoSales);
+
+  res.header("Content-Type", "text/csv");
+  res.attachment("auto_warranty_sales.csv");
+  res.send(csv);
+};
 
 module.exports = {
   createAutoSale,
   getAutoSales,
   updateAutoSale,
   deleteAutoSale,
+  exportAutoSalesToCSV,
 };
