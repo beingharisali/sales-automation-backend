@@ -1,8 +1,12 @@
 const { StatusCodes } = require("http-status-codes");
+const {
+  UnauthenticatedError,
+  NotFoundError,
+  BadRequestError,
+} = require("../errors");
+const mongoose = require("mongoose");
 const Sale = require("../models/Sale");
 const AutoSale = require("../models/AutoSale");
-const { UnauthenticatedError, NotFoundError } = require("../errors");
-const mongoose = require("mongoose");
 
 const createSale = async (req, res) => {
   const { user } = req;
@@ -10,7 +14,7 @@ const createSale = async (req, res) => {
     throw new UnauthenticatedError("User not authenticated");
   }
   if (user.role !== "agent") {
-    throw new CustomError.UnauthorizedError("Only agents can create sales");
+    throw new UnauthenticatedError("Only agents can create sales");
   }
 
   const { agent, ...saleData } = req.body;
@@ -24,6 +28,7 @@ const createSale = async (req, res) => {
     .status(StatusCodes.CREATED)
     .json({ msg: "Sale created successfully", sale });
 };
+
 const getSales = async (req, res) => {
   const { user } = req;
   const { agent, filter } = req.query;
@@ -32,12 +37,14 @@ const getSales = async (req, res) => {
     throw new UnauthenticatedError("User not authenticated");
   }
   if (!["admin", "superadmin"].includes(user.role)) {
-    throw new UnauthorizedError(
+    throw new UnauthenticatedError(
       "Only admins and superadmins can view sales data"
     );
   }
 
   const query = {};
+
+  // Filter by agent ID if provided
   if (agent) {
     if (!mongoose.Types.ObjectId.isValid(agent)) {
       throw new BadRequestError("Invalid Agent ID");
@@ -45,26 +52,33 @@ const getSales = async (req, res) => {
     query.agent = new mongoose.Types.ObjectId(agent);
   }
 
-  const validFilters = ["today", "week", "month", "90days", "all"];
+  const validFilters = ["24hours", "7days", "30days", "90days", "all"];
   if (filter && !validFilters.includes(filter)) {
     throw new BadRequestError("Invalid filter type");
   }
 
+  // Date Filtering Logic
   if (filter && filter !== "all") {
     const now = new Date();
-    if (filter === "today") {
-      const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-      query.dateOfSale = { $gte: startOfDay };
-    } else if (filter === "week") {
-      const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-      startOfWeek.setHours(0, 0, 0, 0);
-      query.dateOfSale = { $gte: startOfWeek };
-    } else if (filter === "month") {
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      query.dateOfSale = { $gte: startOfMonth };
-    } else if (filter === "90days") {
-      const ninetyDaysAgo = new Date(now.setDate(now.getDate() - 90));
-      query.dateOfSale = { $gte: ninetyDaysAgo };
+    let fromDate;
+
+    switch (filter) {
+      case "24hours":
+        fromDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // last 24 hours
+        break;
+      case "7days":
+        fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case "30days":
+        fromDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case "90days":
+        fromDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+    }
+
+    if (fromDate) {
+      query.dateOfSale = { $gte: fromDate };
     }
   }
 
@@ -76,6 +90,7 @@ const getSales = async (req, res) => {
 
   res.status(StatusCodes.OK).json({ sales, count: sales.length });
 };
+
 const updateSale = async (req, res) => {
   const { user } = req;
   const { id } = req.params;
@@ -84,7 +99,9 @@ const updateSale = async (req, res) => {
     throw new UnauthenticatedError("User not authenticated");
   }
   if (!["admin", "superadmin"].includes(user.role)) {
-    throw new UnauthorizedError("Only admins and superadmins can update sales");
+    throw new UnauthenticatedError(
+      "Only admins and superadmins can update sales"
+    );
   }
 
   const sale = await Sale.findById(id);
@@ -115,7 +132,9 @@ const deleteSale = async (req, res) => {
     throw new UnauthenticatedError("User not authenticated");
   }
   if (!["admin", "superadmin"].includes(user.role)) {
-    throw new UnauthorizedError("Only admins and superadmins can delete sales");
+    throw new UnauthenticatedError(
+      "Only admins and superadmins can delete sales"
+    );
   }
 
   const sale = await Sale.findByIdAndDelete(id);
@@ -131,7 +150,7 @@ const getAgentSalesCounts = async (req, res) => {
     throw new UnauthenticatedError("User not authenticated");
   }
   if (user.role !== "agent") {
-    throw new UnauthorizedError("Only agents can view their sales counts");
+    throw new UnauthenticatedError("Only agents can view their sales counts");
   }
 
   const today = new Date();
