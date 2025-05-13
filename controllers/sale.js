@@ -7,6 +7,7 @@ const {
 const mongoose = require("mongoose");
 const Sale = require("../models/Sale");
 const AutoSale = require("../models/AutoSale");
+const { Parser } = require("json2csv");
 
 const createSale = async (req, res) => {
   const { user } = req;
@@ -88,6 +89,43 @@ const getSales = async (req, res) => {
     );
 
   res.status(StatusCodes.OK).json({ sales, count: sales.length });
+};
+
+const exportSalesToCSV = async (req, res) => {
+  const sales = await Sale.find().lean();
+
+  if (!sales || sales.length === 0) {
+    return res.status(404).json({ msg: "No sales found to export" });
+  }
+
+  const fields = [
+    "dateOfSale",
+    "customerName",
+    "primaryPhone",
+    "confirmationNumber",
+    "planName",
+    "email",
+    "agentName",
+    "activationFee",
+    "bankName",
+    "chequeOrCardNumber",
+    "cvv",
+    "expiryDate",
+    "merchantName",
+    "checkingAccountNumber",
+    "routingNumber",
+    "alternativePhone",
+    "campaignType",
+    "address",
+    "paymentMode",
+  ];
+
+  const json2csv = new Parser({ fields });
+  const csv = json2csv.parse(sales);
+
+  res.header("Content-Type", "text/csv");
+  res.attachment("home_warranty_sales.csv");
+  res.send(csv);
 };
 
 const updateSale = async (req, res) => {
@@ -232,4 +270,5 @@ module.exports = {
   updateSale,
   deleteSale,
   getAgentSalesCounts,
+  exportSalesToCSV,
 };

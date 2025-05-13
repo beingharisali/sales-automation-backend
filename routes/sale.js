@@ -8,6 +8,7 @@ const {
   deleteSale,
   getSalesByAgent,
   getAgentSalesCounts,
+  exportSalesToCSV,
 } = require("../controllers/sale");
 
 router
@@ -21,5 +22,5 @@ router
 router
   .route("/dashboard/agent-sales-counts")
   .get(authenticateUser, getAgentSalesCounts);
-// router.get("/", getSalesByAgent);
+router.route("/export").get(authenticateUser, exportSalesToCSV);
 module.exports = router;
