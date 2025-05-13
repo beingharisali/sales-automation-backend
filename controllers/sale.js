@@ -44,7 +44,6 @@ const getSales = async (req, res) => {
 
   const query = {};
 
-  // Filter by agent ID if provided
   if (agent) {
     if (!mongoose.Types.ObjectId.isValid(agent)) {
       throw new BadRequestError("Invalid Agent ID");
