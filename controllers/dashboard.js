@@ -33,14 +33,14 @@ const getDashboardStats = async (req, res) => {
 
 const graphDataStats = async (req, res) => {
   const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30); // last 30 days
+  startDate.setDate(startDate.getDate() - 30);
 
   const salesByDate = await Sale.aggregate([
-    {
-      $match: {
-        createdAt: { $gte: startDate },
-      },
-    },
+    // {
+    //   $match: {
+    //     createdAt: { $gte: startDate },
+    //   },
+    // },
     {
       $group: {
         _id: {
@@ -56,6 +56,7 @@ const graphDataStats = async (req, res) => {
 
   res.status(StatusCodes.OK).json({ salesByDate });
 };
+
 const recentSales = async (req, res) => {
   const recentSales = await Sale.find({})
     .sort({ createdAt: -1 })
@@ -67,7 +68,6 @@ const recentSales = async (req, res) => {
     id: sale._id,
     name: sale.agent?.name || "Unknown",
     email: sale.agent?.email || "N/A",
-    // image: sale.agent?.avatar || "/default-avatar.png",
     campaignType: sale.campaignType || 0,
   }));
 
